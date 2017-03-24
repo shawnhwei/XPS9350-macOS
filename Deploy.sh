@@ -2,7 +2,7 @@
 
 #
 # syscl/Yating Zhou/lighting from bbs.PCBeta.com
-# Merge for Dell XPS 13 9350(Skylake)
+# Merge for Dell XPS 13 9550(Skylake)
 #
 
 #================================= GLOBAL VARS ==================================
@@ -106,7 +106,7 @@ gRecoveryHD_DMG="/Volumes/Recovery HD/com.apple.recovery.boot/BaseSystem.dmg"
 gTarget_rhd_Framework=""
 gTarget_Framework_Repo=""
 gBluetooth_Brand_String=""
-gModelType=1    # 0 stands for non-Iris model, 1 stands for Iris model
+gModelType=1
 #
 # Add: Comment(string), Disabled(bool), Find(data), Name(string), Replace(data)
 # Set: $comment       , false         , syscl     , $binary_name, syscl
@@ -149,7 +149,7 @@ let gDelimitation_OSVer=12
 #
 # Define target website
 #
-target_website=https://github.com/syscl/XPS9350-macOS
+target_website=https://github.com/shawnhwei/XPS9550-macOS
 
 #
 #--------------------------------------------------------------------------------
@@ -546,31 +546,23 @@ function _getEDID()
     fi
 
     #
-    # Patch IOKit/CoreDisplay?
+    # Patch IOKit/CoreDisplay
     #
-    local gIntelGraphicsCardInfo=$(ioreg -lw0 |grep -i "Intel Iris Graphics" |sed -e "/[^<]*<\"/s///" -e "s/\"\>//")
-    if [[ "${gIntelGraphicsCardInfo}" == *"Iris"* ]];
-      then
+    if [[ $gHorizontalRez -gt 1920 || $gSystemHorizontalRez -gt 1920 ]];
+        then
         #
-        # Iris version, no IOKit/CoreDisplay patch require
+        # Yes, We indeed require a patch to unlock the limitation of flash rate of IOKit to power up the QHD+/4K display.
+        #
+        # Note: the argument of gPatchIOKit is set to 0 as default if the examination of resolution fail, this argument can ensure all models being powered up.
+        #
+        gPatchIOKit=${kBASHReturnSuccess}
+        else
+        #
+        # No, patch IOKit is not required, we won't touch IOKit(for a more intergration/clean system since less is more).
         #
         gPatchIOKit=${kBASHReturnFailure}
-      else
-        if [[ $gHorizontalRez -gt 1920 || $gSystemHorizontalRez -gt 1920 ]];
-          then
-            #
-            # Yes, We indeed require a patch to unlock the limitation of flash rate of IOKit to power up the QHD+/4K display.
-            #
-            # Note: the argument of gPatchIOKit is set to 0 as default if the examination of resolution fail, this argument can ensure all models being powered up.
-            #
-            gPatchIOKit=${kBASHReturnSuccess}
-          else
-            #
-            # No, patch IOKit is not required, we won't touch IOKit(for a more intergration/clean system since less is more).
-            #
-            gPatchIOKit=${kBASHReturnFailure}
-        fi
     fi
+
     #
     # Passing gPatchIOKit to gPatchRecoveryHD.
     #
@@ -631,18 +623,18 @@ function _setModelType()
     # set model type
     #
     local gCPUInfo=$(sysctl machdep.cpu.brand_string |sed -e "/.*) /s///" -e "/ CPU.*/s///")
-    if [[ ${gCPUInfo} == *"i7-6560U"* ]];
+    if [[ ${gCPUInfo} == *"i7"* ]];
       then
         #
-        # Iris version(i7-6560U)
+        # i7
         #
-        _PRINT_MSG "NOTE: Your laptop is Iris version(${BLUE}${gCPUInfo}${OFF})"
+        _PRINT_MSG "NOTE: Your laptop is i7 version(${BLUE}${gCPUInfo}${OFF})"
         gModelType=1
       else
         #
-        # Non-Iris version(i5-6200U, i7-6500U)
+        # i5
         #
-        _PRINT_MSG "NOTE: Your laptop is non-Iris version(${BLUE}${gCPUInfo}${OFF})"
+        _PRINT_MSG "NOTE: Your laptop is i5 version(${BLUE}${gCPUInfo}${OFF})"
         gModelType=0
     fi
 }
@@ -657,12 +649,12 @@ function _setPlatformId()
     if [ ${gModelType} == 1 ];
       then
         #
-        # Iris version(i7-6560U)
+        # i7
         #
-        target_ig_platform_id="0x19260004"
+        target_ig_platform_id="0x191b0000"
       else
         #
-        # Non-Iris version(i5-6200U, i7-6500U)
+        # i5
         #
         target_ig_platform_id="0x19160000"
     fi
@@ -699,7 +691,7 @@ function _check_and_fix_config()
     #
     # Check if tinySSDT items are existed
     #
-    local dCheck_SSDT=("SSDT-XPS13SKL" "SSDT-ARPT-RP05" "SSDT-XHC")
+    local dCheck_SSDT=("SSDT-XPS15SKL" "SSDT-ARPT-RP05" "SSDT-XHC")
     local gSortedOrder=$(awk '/<key>SortedOrder<\/key>.*/,/<\/array>/' ${config_plist} | egrep -o '(<string>.*</string>)' | sed -e 's/<\/*string>//g')
     local gSortedNumber=$(awk '/<key>SortedOrder<\/key>.*/,/<\/array>/' ${config_plist} | egrep -o '(<string>.*</string>)' | sed -e 's/<\/*string>//g' | wc -l)
     for tinySSDT in "${dCheck_SSDT[@]}"
@@ -1065,7 +1057,7 @@ function _update_clover()
     #
     # gEFI.
     #
-    drvEFI=("FSInject-64.efi" "HFSPlus.efi" "OsxAptioFix2Drv-64.efi" "DataHubDxe-64.efi")
+    drvEFI=("FSInject-64.efi" "HFSPlus.efi" "OsxAptioFixDrv-64.efi" "DataHubDxe-64.efi")
     efiTOOL=("Shell.inf" "Shell32.efi" "Shell64.efi" "Shell64U.efi" "bdmesg-32.efi" "bdmesg.efi")
 
     #
@@ -1559,7 +1551,7 @@ function _recoveryhd_fix()
     #
     _PRINT_MSG "--->: Convert ${gTarget_FS}(r/w) to ${gBaseSystem_FS}(r/o) ..."
     _tidy_exec "hdiutil convert "${gBaseSystem_RW}" -format ${gBaseSystem_FS} -o ${gBaseSystem_PATCH} -quiet" "Convert ${gTarget_FS}(r/w) to ${gBaseSystem_FS}(r/o)"
-    _PRINT_MSG "--->: Updating Recovery HD for DELL XPS 13 9350..."
+    _PRINT_MSG "--->: Updating Recovery HD for DELL XPS 15 9550..."
     cp ${gBaseSystem_PATCH} "${gRecoveryHD_DMG}"
     chflags hidden "${gRecoveryHD_DMG}"
     #
@@ -1871,8 +1863,8 @@ function main()
     #
     # Install SsdtS3
     #
-    _PRINT_MSG "--->: ${BLUE}Installing SSDT-XPS13SKL.aml to ./DSDT/compile...${OFF}"
-    _tidy_exec "cp "${prepare}"/SSDT-XPS13SKL.aml "${compile}"" "Install SsdtS3 table"
+    _PRINT_MSG "--->: ${BLUE}Installing SSDT-XPS15SKL.aml to ./DSDT/compile...${OFF}"
+    _tidy_exec "cp "${prepare}"/SSDT-XPS15SKL.aml "${compile}"" "Install SsdtS3 table"
 
     #
     # Install ARPT

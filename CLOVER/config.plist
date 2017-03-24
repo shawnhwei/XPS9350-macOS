@@ -148,7 +148,7 @@
 			<string>SSDT-15.aml</string>
 			<string>SSDT-pr.aml</string>
 			<string>SSDT-rmne.aml</string>
-			<string>SSDT-XPS13SKL.aml</string>
+			<string>SSDT-XPS15SKL.aml</string>
 			<string>SSDT-XHC.aml</string>
 		</array>
 		<key>HaltEnabler</key>
@@ -365,7 +365,7 @@
 		<key>NvidiaSingle</key>
 		<false/>
 		<key>ig-platform-id</key>
-		<string>0x19260004</string>
+		<string>0x191b0000</string>
 	</dict>
 	<key>KernelAndKextPatches</key>
 	<dict>
@@ -760,9 +760,9 @@
 		<key>BiosVendor</key>
 		<string>Apple Inc.</string>
 		<key>BiosVersion</key>
-		<string>MBP132.88Z.0226.B11.1612220124</string>
+		<string>MBP133.88Z.0226.B11.1612220123</string>
 		<key>Board-ID</key>
-		<string>Mac-66E35819EE2D0D05</string>
+		<string>Mac-A5C67F76ED83108C</string>
 		<key>BoardManufacturer</key>
 		<string>Apple Inc.</string>
 		<key>BoardType</key>
@@ -774,15 +774,15 @@
 		<key>ChassisManufacturer</key>
 		<string>Apple Inc.</string>
 		<key>ChassisType</key>
-		<string>0x09</string>
+		<string>0x08</string>
 		<key>Family</key>
 		<string>MacBook Pro</string>
 		<key>Manufacturer</key>
 		<string>Apple Inc.</string>
 		<key>ProductName</key>
-		<string>MacBookPro13,2</string>
+		<string>MacBookPro13,3</string>
 		<key>SerialNumber</key>
-		<string>C02S4DHFGYFH</string>
+		<string>C02T4INNGTFN</string>
 		<key>Version</key>
 		<string>1.0</string>
 	</dict>
